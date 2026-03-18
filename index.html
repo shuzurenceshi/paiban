@@ -956,11 +956,39 @@
                 
                 const doctor = schedule[dateStr];
                 const isRest = restDays[dateStr];
+                const holiday = getHoliday(dateStr);
+                const normalData = normalDays[dateStr];
+                
+                // 解析正常班显示
+                let normalText = '';
+                if (normalData) {
+                    if (typeof normalData === 'string') {
+                        normalText = `<div style="color: #059669; font-size: 11px;">正常: ${normalData}</div>`;
+                    } else if (normalData.am || normalData.pm) {
+                        if (normalData.am && normalData.pm) {
+                            normalText = `<div style="color: #059669; font-size: 10px;">正常: ${normalData.am}(上午)</div><div style="color: #059669; font-size: 10px;">${normalData.pm}(下午)</div>`;
+                        } else if (normalData.am) {
+                            normalText = `<div style="color: #059669; font-size: 11px;">正常(上午): ${normalData.am}</div>`;
+                        } else {
+                            normalText = `<div style="color: #059669; font-size: 11px;">正常(下午): ${normalData.pm}</div>`;
+                        }
+                    }
+                }
+                
+                // 背景色：法定假日红色背景，休息日浅红
+                let bgColor = '';
+                if (holiday) {
+                    bgColor = 'background: #fecaca;'; // 法定假日红色背景
+                } else if (isRest) {
+                    bgColor = 'background: #fee;';
+                }
                 
                 cells += `
-                    <td style="border: 1px solid #ddd; padding: 8px; height: 60px; vertical-align: top; ${isRest ? 'background: #fee;' : ''}">
+                    <td style="border: 1px solid #ddd; padding: 8px; height: 60px; vertical-align: top; ${bgColor}">
                         <div style="font-weight: bold;">${day}</div>
+                        ${holiday ? `<div style="color: #dc2626; font-size: 10px; font-weight: 600;">${holiday}</div>` : ''}
                         <div style="color: #667eea; font-size: 12px;">${doctor || ''}</div>
+                        ${normalText}
                         ${isRest ? '<div style="color: #ef4444; font-size: 11px;">休息</div>' : ''}
                     </td>
                 `;
@@ -970,10 +998,21 @@
             
             html += cells + '</table>';
             
-            // 医生列表
+            // 图例说明
             html += `
-                <div style="margin-top: 20px; padding: 10px; background: #f9f9f9; border-radius: 8px;">
-                    <strong>值班医生：</strong>${doctors.join('、')}
+                <div style="margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 8px; font-size: 13px;">
+                    <div style="margin-bottom: 8px;"><strong>值班医生：</strong>${doctors.join('、')}</div>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            <span style="width: 16px; height: 16px; background: #fecaca; border: 1px solid #ddd; display: inline-block;"></span>
+                            法定假日
+                        </span>
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            <span style="width: 16px; height: 16px; background: #fee; border: 1px solid #ddd; display: inline-block;"></span>
+                            休息日
+                        </span>
+                        <span style="color: #059669;">正常班</span>
+                    </div>
                 </div>
             `;
             
